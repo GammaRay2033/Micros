@@ -8,9 +8,10 @@ int main(void){
 	do{
 		system("/bin/stty raw");
 		c=getchar();
-		putchar(c);
 		system("/bin/stty -raw");
+		sleep(1);
 	}while(c!='.');
+	printf("\n");
 	return 0;
 }
 
