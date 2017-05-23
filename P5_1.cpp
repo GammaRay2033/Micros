@@ -1,7 +1,7 @@
 #include <mraa.h>
 #include <stdio.h>
 #include <cstdlib>
-#include <kbhit.h>
+#include "kbhit.h"
 
 #define LCD 0x3E
 #define RGB 0x62
@@ -46,15 +46,19 @@ int main(void){
     }
     puts("Press 's' to stop the count");
     do{
-      timer -= 0.1;
+      timer -= 1.0;
       sprintf(str, " %0.2f", timer);
       clrLCD();
       writeLCD(str[0]);
       writeLCD(str[1]);
       writeLCD(str[2]);
       writeLCD(str[3]);
-      sleep(0.1);
-      
+      sleep(1.0);
+      if(kbhit()){
+	system("/bin/stty raw");
+        c=getchar();
+	system("/bin/stty -raw");
+      }
     }while(c!='s');
     printf("\n");
     return 0;
