@@ -1,7 +1,11 @@
 #include "kbhit.h"
-#include <unistd.h> // read()
+#include <termios.h>
+#include <unistd.h>   // for read()
 
-keyboard::keyboard()
+static struct termios initial_settings, new_settings;
+static int peek_character = -1;
+
+void init_keyboard()
 {
     tcgetattr(0,&initial_settings);
     new_settings = initial_settings;
@@ -11,15 +15,14 @@ keyboard::keyboard()
     new_settings.c_cc[VMIN] = 1;
     new_settings.c_cc[VTIME] = 0;
     tcsetattr(0, TCSANOW, &new_settings);
-    peek_character=-1;
 }
 
-keyboard::~keyboard()
+void close_keyboard()
 {
     tcsetattr(0, TCSANOW, &initial_settings);
 }
 
-int keyboard::kbhit()
+int kbhit()
 {
 unsigned char ch;
 int nread;
@@ -30,8 +33,7 @@ int nread;
     nread = read(0,&ch,1);
     new_settings.c_cc[VMIN]=1;
     tcsetattr(0, TCSANOW, &new_settings);
-
-    if (nread == 1) 
+    if(nread == 1) 
     {
         peek_character = ch;
         return 1;
@@ -39,15 +41,16 @@ int nread;
     return 0;
 }
 
-int keyboard::getch()
+int readch()
 {
 char ch;
 
-    if (peek_character != -1) 
+    if(peek_character != -1) 
     {
         ch = peek_character;
         peek_character = -1;
-    } else read(0,&ch,1);
-
+        return ch;
+    }
+    read(0,&ch,1);
     return ch;
 }
