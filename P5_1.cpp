@@ -1,7 +1,7 @@
 #include <mraa.h>
 #include <stdio.h>
 #include <cstdlib>
-#include <conio.h>
+#include <kbhit.h>
 
 #define LCD 0x3E
 #define RGB 0x62
@@ -54,10 +54,8 @@ int main(void){
       writeLCD(str[2]);
       writeLCD(str[3]);
       sleep(0.1);
-      if(kbhit()){
-        c = getchar();
-      }
-    }while((c!='s')||(timer>0));
+      
+    }while(c!='s');
     printf("\n");
     return 0;
   }
