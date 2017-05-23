@@ -5,7 +5,14 @@
 #define LCD 0x3E
 #define RGB 0x62
 
+void initLCD();
+void initRGB();
+void setRGB(int R, int G, int B);
+void writeLCD(char str);
+void clrLCD();
+
 char c;
+char str;
 uint8_t rx_tx[2];
 mraa_i2c_context i2c;
 
@@ -15,7 +22,17 @@ int main(void){
 
   initLCD();
   initRGB();
-  setRGB(255,255,255);
+  setRGB(255,0,0);
+  
+  str ='Q';
+  writeLCD(str);
+  str='U';
+  writeLCD(str);
+  usleep(1000000);
+  clrLCD();
+  usleep(1000000);
+  str='L';
+  writeLCD(str);
   
 
   puts("Enter text '.' to exit");
