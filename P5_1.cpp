@@ -12,38 +12,47 @@ void writeLCD(char str);
 void clrLCD();
 
 char c;
-char str;
+char str[];
+float time;
+int value = false;
 uint8_t rx_tx[2];
 mraa_i2c_context i2c;
+mraa_gpio_context Tout;
+mraa_gpio_context PBStart;
 
 int main(void){
   mraa_init();
   i2c = mraa_i2c_init(0);
+  Tout = mraa_gpio_init(13);
+  PBStart = mraa_gpio_init(5);
+  mraa_gpio_dir(Tout, MRAA_GPIO_OUT);
+  mraa_gpio_dir(PBStart, MRAA_GPIO_IN);
 
   initLCD();
   initRGB();
   setRGB(255,0,0);
-  
-  str ='Q';
-  writeLCD(str);
-  str='U';
-  writeLCD(str);
-  usleep(1000000);
-  clrLCD();
-  usleep(1000000);
-  str='L';
-  writeLCD(str);
-  
 
-  puts("Enter text '.' to exit");
-
-  do{
-    system("/bin/stty raw");
-    c=getchar();
-    system("/bin/stty -raw");
-  }while(c!='s');
-  printf("\n");
-  return 0;
+  while(true){
+    time = 5.0;
+    sprintf(str, "%0.1f", time);
+    clrLCD();
+    writeLCD(str[0]);
+    writeLCD(str[1]);
+    writeLCD(str[2]);
+    sleep(10);
+    while(!value){
+      value = mraa_gpio_read(PBStart);
+    }
+    puts("Press 's' to stop the count");
+    do{
+      system("/bin/stty raw");
+      c=getchar();
+      system("/bin/stty -raw");
+      time -= 0.1;
+    }while(c!='s');
+    printf("\n");
+    return 0;
+  }
 }
 
 void initLCD(){
@@ -113,4 +122,3 @@ void setRGB(int R, int G, int B){
   rx_tx[1] = B;
   mraa_i2c_write(i2c,rx_tx,2);
 }
-
