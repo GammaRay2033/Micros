@@ -1,6 +1,7 @@
 #include <mraa.h>
 #include <stdio.h>
 #include <cstdlib>
+#include <conio.h>
 
 #define LCD 0x3E
 #define RGB 0x62
@@ -12,8 +13,8 @@ void writeLCD(char str);
 void clrLCD();
 
 char c;
-char str[];
-float time;
+char str[5];
+float timer;
 int value = false;
 uint8_t rx_tx[2];
 mraa_i2c_context i2c;
@@ -33,23 +34,30 @@ int main(void){
   setRGB(255,0,0);
 
   while(true){
-    time = 5.0;
-    sprintf(str, "%0.1f", time);
+    timer = 5.0;
+    sprintf(str, " %0.2f", timer);
     clrLCD();
     writeLCD(str[0]);
     writeLCD(str[1]);
     writeLCD(str[2]);
-    sleep(10);
+    writeLCD(str[3]);
     while(!value){
       value = mraa_gpio_read(PBStart);
     }
     puts("Press 's' to stop the count");
     do{
-      system("/bin/stty raw");
-      c=getchar();
-      system("/bin/stty -raw");
-      time -= 0.1;
-    }while(c!='s');
+      timer -= 0.1;
+      sprintf(str, " %0.2f", timer);
+      clrLCD();
+      writeLCD(str[0]);
+      writeLCD(str[1]);
+      writeLCD(str[2]);
+      writeLCD(str[3]);
+      sleep(0.1);
+      if(kbhit()){
+        c = getchar();
+      }
+    }while((c!='s')||(timer>0));
     printf("\n");
     return 0;
   }
