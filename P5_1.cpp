@@ -55,14 +55,12 @@ int main(void){
       writeLCD(str[3]);
       sleep(1.0);
       if(kbhit()){
-	system("/bin/stty raw");
-        c=getchar();
-	system("/bin/stty -raw");
+        c=readch();
       }
     }while(c!='s');
-    printf("\n");
-    return 0;
+    system("reset");
   }
+return 0;
 }
 
 void initLCD(){
