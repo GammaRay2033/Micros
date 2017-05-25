@@ -14,7 +14,7 @@ void clrLCD();
 
 char c;
 char str[5];
-float timer;
+float timer=5.0;
 int value = false;
 uint8_t rx_tx[2];
 mraa_i2c_context i2c;
@@ -34,19 +34,12 @@ int main(void){
   setRGB(255,0,0);
 
   while(true){
-    timer = 5.0;
-    sprintf(str, " %0.2f", timer);
-    clrLCD();
-    writeLCD(str[0]);
-    writeLCD(str[1]);
-    writeLCD(str[2]);
-    writeLCD(str[3]);
+    mraa_gpio_write(Tout,0);
     while(!value){
       value = mraa_gpio_read(PBStart);
     }
-    puts("Press 's' to stop the count");
+    puts("Press 's' to stop the count and 'r' to reset");
     do{
-      timer -= 1.0;
       sprintf(str, " %0.2f", timer);
       clrLCD();
       writeLCD(str[0]);
@@ -54,11 +47,34 @@ int main(void){
       writeLCD(str[2]);
       writeLCD(str[3]);
       sleep(1.0);
+      timer -= 1.0;
       if(kbhit()){
         c=readch();
       }
-    }while(c!='s');
+    }while((c!='s')&&(c!='r')&&(timer>=0));
     system("reset");
+    if(timer<=0){
+      mraa_gpio_write(Tout,1);
+      timer = 5.0;
+      do{
+        if(kbhit()){
+          c=readch();
+	}
+      }while(c!='r');
+    }
+    if(c=='s'){
+      c='a';
+      do{
+        if(kbhit()){
+          c=readch();
+        }
+      }while(c!='s');
+    }
+    if(c=='r'){
+      mraa_gpio_write(Tout,0);
+      timer = 5.0;
+    }
+    c='a';
   }
 return 0;
 }
