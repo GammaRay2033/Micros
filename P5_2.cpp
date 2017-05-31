@@ -34,7 +34,13 @@ int main(void){
   setRGB(255,0,0);
 	
   puts("Press 's' to start the counter and 'r' to reset");
-
+  sprintf(str, " %i ", count);
+  puts(str);
+  clrLCD();
+  writeLCD(str[0]);
+  writeLCD(str[1]);
+  writeLCD(str[2]);
+	
   while(true){
     mraa_gpio_write(Tout,0);
     while((c!='s')&&(c!='r')&&(c!='x')){
@@ -49,7 +55,7 @@ int main(void){
         value = mraa_gpio_read(PBEvent);
 	if(kbhit()){
 	  c=readch();
-	    if(c=='r'){
+	    if((c=='r')||(c=='x')){
 	      break;
 	    }
 	}
