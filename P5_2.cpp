@@ -75,6 +75,18 @@ int main(void){
       writeLCD(str[2]);
     }while((c!='r')&&(count<=9)&&(c!='x'));
 	  
+    if(c=='r'){
+      mraa_gpio_write(Tout,0);
+      count = 0;
+      system("reset");
+      sprintf(str, " %i ", count);
+      puts(str);
+      clrLCD();
+      writeLCD(str[0]);
+      writeLCD(str[1]);
+      writeLCD(str[2]);
+    }
+	  
     if(count>=10){
       mraa_gpio_write(Tout,1);
       count = 0;
@@ -92,18 +104,6 @@ int main(void){
       writeLCD(str[1]);
       writeLCD(str[2]);
       c='a';
-    }
-	  
-    if(c=='r'){
-      mraa_gpio_write(Tout,0);
-      count = 0;
-      system("reset");
-      sprintf(str, " %i ", count);
-      puts(str);
-      clrLCD();
-      writeLCD(str[0]);
-      writeLCD(str[1]);
-      writeLCD(str[2]);
     }
     
     if(c=='x'){
