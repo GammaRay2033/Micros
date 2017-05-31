@@ -48,8 +48,6 @@ int main(void){
       clrLCD();
       writeLCD(str[0]);
       writeLCD(str[1]);
-      writeLCD(str[2]);
-      writeLCD(str[3]);
       while(!value){
         value = mraa_gpio_read(PBEvent);
       }
@@ -58,11 +56,11 @@ int main(void){
       if(kbhit()){
         c=readch();
       }
-    }while((c!='r')&&(count>10));
+    }while((c!='r')&&(count<10));
 	  
     system("reset");
 	  
-    if(count>10){
+    if(count<10){
       mraa_gpio_write(Tout,1);
       count = 0;
       do{    
