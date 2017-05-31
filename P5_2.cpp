@@ -37,7 +37,7 @@ int main(void){
 
   while(true){
     mraa_gpio_write(Tout,0);
-    while(c!='s'){
+    while((c!='s')&&(c!='r')){
       if(kbhit()){
         c=readch();
       }
@@ -59,9 +59,9 @@ int main(void){
         c=readch();
       }
       system("reset");
-    }while((c!='r')&&(count<10));
+    }while((c!='r')&&(count<=10));
 	  
-    if(count<10){
+    if(count>=10){
       mraa_gpio_write(Tout,1);
       count = 0;
       c='a';
@@ -70,15 +70,13 @@ int main(void){
            c=readch();
         }
       }while(c!='r');
+      c='a';
     }
 	  
     if(c=='r'){
       mraa_gpio_write(Tout,0);
       count = 0;
-      c='a';
     }
-	  
-    c='a';
   }
 return 0;
 }
