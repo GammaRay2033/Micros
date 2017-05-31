@@ -44,11 +44,6 @@ int main(void){
     }
 	  
     do{
-      sprintf(str, " %i", count);
-      puts(str);
-      clrLCD();
-      writeLCD(str[0]);
-      writeLCD(str[1]);
       c='a';
       while(!value){
         value = mraa_gpio_read(PBEvent);
@@ -61,12 +56,18 @@ int main(void){
       }
       value = false;
       count++;
-      sleep(1);
+      usleep(150000);
       if(kbhit()){
         c=readch();
       }
       system("reset");
-    }while((c!='r')&&(count<=10));
+      sprintf(str, " %i ", count);
+      puts(str);
+      clrLCD();
+      writeLCD(str[0]);
+      writeLCD(str[1]);
+      writeLCD(str[2]);
+    }while((c!='r')&&(count<=9));
 	  
     if(count>=10){
       mraa_gpio_write(Tout,1);
