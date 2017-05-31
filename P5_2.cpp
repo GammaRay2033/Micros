@@ -72,6 +72,13 @@ int main(void){
     if(count>=10){
       mraa_gpio_write(Tout,1);
       count = 0;
+      system("reset");
+      sprintf(str, " %i ", count);
+      puts(str);
+      clrLCD();
+      writeLCD(str[0]);
+      writeLCD(str[1]);
+      writeLCD(str[2]);
       c='a';
       do{    
         if(kbhit()){
@@ -84,6 +91,13 @@ int main(void){
     if(c=='r'){
       mraa_gpio_write(Tout,0);
       count = 0;
+      system("reset");
+      sprintf(str, " %i ", count);
+      puts(str);
+      clrLCD();
+      writeLCD(str[0]);
+      writeLCD(str[1]);
+      writeLCD(str[2]);
     }
   }
 return 0;
