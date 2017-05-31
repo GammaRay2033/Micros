@@ -49,6 +49,7 @@ int main(void){
       clrLCD();
       writeLCD(str[0]);
       writeLCD(str[1]);
+      c='a';
       while(!value){
         value = mraa_gpio_read(PBEvent);
 	if(kbhit()){
