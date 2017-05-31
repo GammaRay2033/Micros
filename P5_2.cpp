@@ -67,7 +67,7 @@ int main(void){
       count = 0;
       do{    
         if(kbhit()){
-           c=readcg();
+           c=readch();
         }
       }while(c!='r');
     }
