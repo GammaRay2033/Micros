@@ -54,13 +54,12 @@ int main(void){
       }
       value = false;
       count++;
-      sleep(0.5);
+      sleep(1);
       if(kbhit()){
         c=readch();
       }
+      system("reset");
     }while((c!='r')&&(count<10));
-	  
-    system("reset");
 	  
     if(count<10){
       mraa_gpio_write(Tout,1);
