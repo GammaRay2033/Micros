@@ -37,7 +37,7 @@ int main(void){
 
   while(true){
     mraa_gpio_write(Tout,0);
-    while((c!='s')&&(c!='r')){
+    while((c!='s')&&(c!='r')&&(c!='x')){
       if(kbhit()){
         c=readch();
       }
@@ -67,11 +67,17 @@ int main(void){
       writeLCD(str[0]);
       writeLCD(str[1]);
       writeLCD(str[2]);
-    }while((c!='r')&&(count<=9));
+    }while((c!='r')&&(count<=9)&&(c!='x'));
 	  
     if(count>=10){
       mraa_gpio_write(Tout,1);
       count = 0;
+      c='a';
+      do{    
+        if(kbhit()){
+           c=readch();
+        }
+      }while(c!='r');
       system("reset");
       sprintf(str, " %i ", count);
       puts(str);
@@ -79,12 +85,6 @@ int main(void){
       writeLCD(str[0]);
       writeLCD(str[1]);
       writeLCD(str[2]);
-      c='a';
-      do{    
-        if(kbhit()){
-           c=readch();
-        }
-      }while(c!='r');
       c='a';
     }
 	  
@@ -98,6 +98,10 @@ int main(void){
       writeLCD(str[0]);
       writeLCD(str[1]);
       writeLCD(str[2]);
+    }
+    
+    if(c=='x'){
+      return 0;
     }
   }
 return 0;
