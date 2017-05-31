@@ -51,6 +51,7 @@ int main(void){
       while(!value){
         value = mraa_gpio_read(PBEvent);
       }
+      value = false;
       count++;
       sleep(0.5);
       if(kbhit()){
@@ -63,6 +64,7 @@ int main(void){
     if(count<10){
       mraa_gpio_write(Tout,1);
       count = 0;
+      c='a';
       do{    
         if(kbhit()){
            c=readcg();
@@ -73,6 +75,7 @@ int main(void){
     if(c=='r'){
       mraa_gpio_write(Tout,0);
       count = 0;
+      c='a';
     }
 	  
     c='a';
