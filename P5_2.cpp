@@ -51,6 +51,12 @@ int main(void){
       writeLCD(str[1]);
       while(!value){
         value = mraa_gpio_read(PBEvent);
+	if(kbhit()){
+	  c=readch();
+	    if(c=='r'){
+	      break;
+	    }
+	}
       }
       value = false;
       count++;
