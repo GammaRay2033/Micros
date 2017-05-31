@@ -12,68 +12,71 @@ void setRGB(int R, int G, int B);
 void writeLCD(char str);
 void clrLCD();
 
-char c;
+char c='a';
 char str[5];
-float timer=5.0;
+int count=0;
 int value = false;
 uint8_t rx_tx[2];
 mraa_i2c_context i2c;
 mraa_gpio_context Tout;
-mraa_gpio_context PBStart;
+mraa_gpio_context PBEvent;
 
 int main(void){
   mraa_init();
   i2c = mraa_i2c_init(0);
   Tout = mraa_gpio_init(13);
-  PBStart = mraa_gpio_init(5);
+  PBEvent = mraa_gpio_init(5);
   mraa_gpio_dir(Tout, MRAA_GPIO_OUT);
-  mraa_gpio_dir(PBStart, MRAA_GPIO_IN);
+  mraa_gpio_dir(PBEvent, MRAA_GPIO_IN);
 
   initLCD();
   initRGB();
   setRGB(255,0,0);
+	
+  puts("Press 's' to start the counter and 'r' to reset");
 
   while(true){
     mraa_gpio_write(Tout,0);
-    while(!value){
-      value = mraa_gpio_read(PBStart);
+    while(c!='s'){
+      if(kbhit()){
+        c=readch();
+      }
     }
-    puts("Press 's' to stop the count and 'r' to reset");
+	  
     do{
-      sprintf(str, " %0.2f", timer);
+      sprintf(str, " %i", count);
       clrLCD();
       writeLCD(str[0]);
       writeLCD(str[1]);
       writeLCD(str[2]);
       writeLCD(str[3]);
-      sleep(1.0);
-      timer -= 1.0;
+      while(!value){
+        value = mraa_gpio_read(PBEvent);
+      }
+      count++;
+      sleep(0.5);
       if(kbhit()){
         c=readch();
       }
-    }while((c!='s')&&(c!='r')&&(timer>=0));
+    }while((c!='r')&&(count>10));
+	  
     system("reset");
-    if(timer<=0){
+	  
+    if(count>10){
       mraa_gpio_write(Tout,1);
-      timer = 5.0;
-      do{
+      count = 0;
+      do{    
         if(kbhit()){
-          c=readch();
-	}
+           c=readcg();
+        }
       }while(c!='r');
     }
-    if(c=='s'){
-      c='a';
-      do{
-        if(kbhit()){
-          c=readch();
-        }
-      }while(c!='s');
-    }
+	  
     if(c=='r'){
       mraa_gpio_write(Tout,0);
-      timer = 5.0;
+      count = 0;
     }
+	  
     c='a';
   }
 return 0;
