@@ -45,6 +45,7 @@ int main(void){
 	  
     do{
       sprintf(str, " %i", count);
+      puts(str);
       clrLCD();
       writeLCD(str[0]);
       writeLCD(str[1]);
