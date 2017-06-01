@@ -35,8 +35,11 @@ int main(void){
 
   while(true){
     mraa_gpio_write(Tout,0);
-    while(!value){
+    while((!value)||(c!='x')){
       value = mraa_gpio_read(PBStart);
+      if(kbhit()){
+        c=readch();
+      }
     }
     puts("Press 's' to stop the count and 'r' to reset");
     do{
@@ -51,7 +54,7 @@ int main(void){
       if(kbhit()){
         c=readch();
       }
-    }while((c!='s')&&(c!='r')&&(timer>=0));
+    }while((c!='s')&&(c!='r')&&(timer>=0)&&(c!='x'));
     system("reset");
     if(timer<=0){
       mraa_gpio_write(Tout,1);
@@ -60,7 +63,7 @@ int main(void){
         if(kbhit()){
           c=readch();
 	}
-      }while(c!='r');
+      }while((c!='r')&&(c!='x'));
     }
     if(c=='s'){
       c='a';
@@ -68,11 +71,14 @@ int main(void){
         if(kbhit()){
           c=readch();
         }
-      }while(c!='s');
+      }while((c!='s')&&(c!='x'));
     }
     if(c=='r'){
       mraa_gpio_write(Tout,0);
       timer = 5.0;
+    }
+    if(c=='x'){
+      return 0;
     }
     c='a';
   }
