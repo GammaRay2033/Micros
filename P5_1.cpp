@@ -35,7 +35,7 @@ int main(void){
 
   while(true){
     mraa_gpio_write(Tout,0);
-    while((!value)||(c!='x')){
+    while((!value)&&(c!='x')){
       value = mraa_gpio_read(PBStart);
       if(kbhit()){
         c=readch();
