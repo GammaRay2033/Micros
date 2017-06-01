@@ -35,10 +35,13 @@ int main(void){
 
   while(true){
     mraa_gpio_write(Tout,0);
-    while((!value)&&(c!='x')){
+    while(!value){
       value = mraa_gpio_read(PBStart);
       if(kbhit()){
         c=readch();
+	if((c=='r')||(c=='x')){
+          break;
+	}
       }
     }
     puts("Press 's' to stop the count and 'r' to reset");
