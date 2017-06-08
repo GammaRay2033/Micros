@@ -16,7 +16,7 @@ io.on('connection', function(socket){
     var interval = setInterval(function(){
     socket.emit('ambient', {
         temperature: Math.round(sensor.getCelsiusTemp()*Math.pow(10,2))/Math.pow(10,2),
-        hummidity: Math.round(sensor.getHummidity()*Math.pow(10,2))/Math.pow(10,2),
+        humidity: Math.round(sensor.getHumidity()*Math.pow(10,2))/Math.pow(10,2),
         lighting: 35
     });
     }, 500); //Read the temperature every 500ms and send the reading
