@@ -1,16 +1,22 @@
-// Load Grove module
-var TH02 = require('th02js');
+var TH02 = require('th02js'); //TH02js Library
+var app = require('express')(); //Express Library
+var server = require('http').Server(app); //Create HTTP instance
+var io = require('socket.io')(server); //Socket.IO Library
 
-// Create the temperature sensor object using AIO pin 0
+server.listen(3000); //Run on port 3000
+
 var bus = 6;
-var sensor = new TH02(bus);
+var sensor = new TH02(bus); // Create the temperature sensor object
 
-// Read the temperature ten times, printing both the Celsius and
-// equivalent Fahrenheit temperature, waiting one second between readings
-var i = 0;
-var waiting = setInterval(function() {
-        var celsius = sensor.getCelsiusTemp();
-        console.log(celsius + " degrees Celsius");
-        i++;
-        if (i == 10) clearInterval(waiting);
-        }, 1000);
+app.get('/', function(req, res) {                  
+    res.sendfile(__dirname + '/index.html'); //Serve the html file
+});
+
+io.on('connection', function(socket){
+    var interval = setInterval(function(){
+        socket.emit('temperature', { sensor.getCelsiusTemp() }); //Read the temperature every 500ms and send the reading
+    }, 500);
+    socket.on('disconnect', function(){
+        clearInterval(interval);
+    });    
+});
