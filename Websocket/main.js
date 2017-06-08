@@ -28,7 +28,6 @@ io.on('connection', function(socket){
     });    
 });
 
-$(document).ready(function() {
   var ctx = document.getElementById("myChart").getContext("2d");
 
   var data = {
@@ -97,5 +96,3 @@ $(document).ready(function() {
   var months = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
-
-});
