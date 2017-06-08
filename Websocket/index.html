@@ -4,7 +4,7 @@
     <script src="https://cdn.socket.io/socket.io-1.2.1.js"></script>
     <script>
         $(function(){
-            var socket = io.connect('http://INTEL_EDISON_IP_ADDRESS:3000');
+            var socket = io.connect('http://192.168.1.47:3000');
             var temperature = $('#temperature');
             socket.on('temperature',function(data){
                 temperature.html(data.celsius);
