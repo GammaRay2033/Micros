@@ -14,7 +14,7 @@ app.get('/', function(req, res) {
 
 io.on('connection', function(socket){
     var interval = setInterval(function(){
-    socket.emit('temperature', {celsius: sensor.getCelsiusTemp()}); //Read the temperature every 500ms and send the reading
+    socket.emit('temperature', {celsius: 14}); //Read the temperature every 500ms and send the reading
     console.log(sensor.getCelsiusTemp());
     }, 500);
     socket.on('disconnect', function(){
