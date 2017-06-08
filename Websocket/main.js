@@ -9,12 +9,12 @@ var bus = 6;
 var sensor = new TH02(bus); // Create the temperature sensor object
 
 app.get('/', function(req, res) {                  
-    res.sendfile(__dirname + '/index.html'); //Serve the html file
+    res.sendFile(__dirname + '/index.html'); //Serve the html file
 });
 
 io.on('connection', function(socket){
     var interval = setInterval(function(){
-        socket.emit('temperature', { celsius: sensor.getCelsiusTemp() }); //Read the temperature every 500ms and send the reading
+        socket.emit('temperature', sensor.getCelsiusTemp()); //Read the temperature every 500ms and send the reading
     }, 500);
     socket.on('disconnect', function(){
         clearInterval(interval);
