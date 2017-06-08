@@ -5,9 +5,7 @@ var sensor = new TH02(bus); // Create the temperature sensor object
 
 var waiting = setInterval(function() {
         var celsius = sensor.getCelsiusTemp();
-        var fahrenheit = celsius * 9.0/5.0 + 32.0;
-        console.log(celsius + " degrees Celsius, or " +
-            Math.round(fahrenheit) + " degrees Fahrenheit");
+        console.log(celsius + " degrees Celsius");
         i++;
         if (i == 10) clearInterval(waiting);
         }, 1000);
