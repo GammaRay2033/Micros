@@ -7,11 +7,11 @@
         $(function(){
             var socket = io.connect('http://192.168.2.15:3000');
             var temperature = $('#temperature');
-            var hummidity = $('#hummidity');
+            var humidity = $('#humidity');
             var lighting = $('#lighting');
             socket.on('ambient',function(data){
                 temperature.html(data.temperature);
-                hummidity.html(data.hummidity);
+                humidity.html(data.humidity);
                 lighting.html(data.lighting);
             });
         });
@@ -20,8 +20,8 @@
 <body>
     <h2><center>The temperature is:</center></h2>
     <h1><center><span id="temperature"></span>°C</center></h1>
-    <h2><center>The hummidity is:</center></h2>
-    <h1><center><span id="hummidity"></span>°C</center></h1>
+    <h2><center>The humidity is:</center></h2>
+    <h1><center><span id="humidity"></span>°C</center></h1>
     <h2><center>The lighting level is:</center></h2>
     <h1><center><span id="lighting"></span>°C</center></h1>
 </body>
