@@ -20,7 +20,7 @@ io.on('connection', function(socket){
     socket.emit('ambient', {
         temperature: Math.round(th02Sensor.getCelsiusTemp()*Math.pow(10,2))/Math.pow(10,2),
         humidity: Math.round(th02Sensor.getHumidity()*Math.pow(10,2))/Math.pow(10,2),
-        lighting: lightSensor.read();
+        lighting: lightSensor.read()
     });
     }, 500); //Read the temperature every 500ms and send the reading
     socket.on('disconnect', function(){
