@@ -43,7 +43,7 @@ $(document).ready(function() {
     setData(data.datasets[1].data);
     setLabels(data.labels);
 
-    var myLineChart = new Chart(ctx).Line(data, options);
+    myLineChart.update();
   }, 2000);
 
   function setLabels(labels) {
