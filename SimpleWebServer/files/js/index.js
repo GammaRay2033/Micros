@@ -39,9 +39,9 @@ $(document).ready(function() {
   var myLineChart = new Chart(ctx).Line(data, options);
 
   setInterval(function() {
-    setData(myLineChart.data.datasets[0].data);
-    setData(myLineChart.data.datasets[1].data);
-    setLabels(myLineChart.data.labels);
+    setData(data,0);
+    setData(data,1);
+    setLabels(data.labels);
 
     myLineChart.update();
   }, 2000);
@@ -53,9 +53,9 @@ $(document).ready(function() {
     labels.shift();
   }
 
-  function setData(data) {
-    data.push(Math.floor(Math.random() * 100) + 1);
-    data.shift();
+  function setData(data, i) {
+    data.datasets[i].data.push(Math.floor(Math.random() * 100) + 1);
+    data.datasets[i].data.shift();
   }
   
   function convertMonthNameToNumber(monthName) {
