@@ -1,5 +1,3 @@
-"use strict";
-
 var TH02 = require('th02js'); //TH02js Library
 var app = require('express')(); //Express Library
 var server = require('http').Server(app); //Create HTTP instance
