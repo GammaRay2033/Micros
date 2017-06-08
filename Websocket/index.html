@@ -1,0 +1,19 @@
+<html>
+<head>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.2.1.js"></script>
+    <script>
+        $(function(){
+            var socket = io.connect('http://INTEL_EDISON_IP_ADDRESS:3000');
+            var temperature = $('#temperature');
+            socket.on('temperature',function(data){
+                temperature.html(data.celsius);
+            });
+        });
+    </script>
+</head>
+<body>
+    <h2>The current temperature is:</h2>
+    <h1><span id="temperature"></span>C</h1>
+</body>
+</html>
