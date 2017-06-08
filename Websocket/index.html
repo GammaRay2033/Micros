@@ -7,7 +7,7 @@
             var socket = io.connect('http://192.168.1.47:3000');
             var temperature = $('#temperature');
             socket.on('temperature',function(data){
-                temperature.html(data.celsius);
+                temperature.html(data);
             });
         });
     </script>
