@@ -1,3 +1,5 @@
+"use strict";
+
 var TH02 = require('th02js'); //TH02js Library
 var m = require('mraa'); //MRAA Library 
 var app = require('express')(); //Express Library
