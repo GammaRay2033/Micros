@@ -5,7 +5,7 @@ var io = require('socket.io')(server); //Socket.IO Library
 
 server.listen(3000); //Run on port 3000
 
-var bus = 6;
+var bus = 12;
 var sensor = new TH02(bus); // Create the temperature sensor object
 
 app.get('/', function(req, res) {                  
