@@ -39,9 +39,9 @@ $(document).ready(function() {
   var myLineChart = new Chart(ctx).Line(data, options);
 
   setInterval(function() {
-    setData(data.datasets[0].data);
-    setData(data.datasets[1].data);
-    setLabels(data.labels);
+    setData(myLineChart.data.datasets[0].data);
+    setData(myLineChart.data.datasets[1].data);
+    setLabels(myLineChart.data.labels);
 
     myLineChart.update();
   }, 2000);
