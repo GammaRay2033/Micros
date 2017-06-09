@@ -14,6 +14,9 @@
                 humidity.html(data.humidity);
                 lighting.html(data.lighting);
             });
+            $('#led').click(function () {
+                socket.emit('ledStatus', $(this).val());
+            });
         });
     </script>
 </head>
@@ -24,5 +27,7 @@
     <h1><center><span id="humidity"></span>%</center></h1>
     <h2><center>The lighting level is:</center></h2>
     <h1><center><span id="lighting"></span>%</center></h1>
+    <br>
+    <center><input type="button" value="Turn ON LED" id="led" /></center>
 </body>
 </html>
