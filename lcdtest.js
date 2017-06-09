@@ -53,7 +53,8 @@ lcdText.set([
 
 setTimeout(function(){
   lcdText.set([
-    "Check http://192.168.1.17:3000 in web browser"
+    "Check in browser",
+    "http://IP:3000"
   ]);
 }, 5000);
 
@@ -62,4 +63,4 @@ setTimeout(function(){
     "CETYS UNIVERSIDAD CAMPUS MEXICALI - INGENIERIA MECATRONICA", 
     LCD_MESSAGE_VERY_SHORT
   ]);
-}, 20000);
+}, 10000);
