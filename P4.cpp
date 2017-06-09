@@ -20,7 +20,7 @@ mraa_i2c_address(i2c,0x40);
 while(1){
 	printf("Seleccionar opciones \n\n");
 	printf("1. Sensor de Temperatura \n");
-	printf("2. Smrensor de Humedad \n");
+	printf("2. Sensor de Humedad \n");
 	printf("3. Sensor de Luminisidad \n\n");
 
 	printf("Introduzca su opcion: ");
@@ -37,7 +37,7 @@ while(1){
 			do{
 				mraa_i2c_read_bytes_data(i2c,0x00,temp,3);
 			}while(temp[0]==0);
-			temperature=((temp[1]<<6)|(temp[2>>2]))/32.0-50.0;
+			temperature=((temp[1]<<6)|(temp[2]>>2))/32.0-50.0;
 			temp[0]=0x00;
 			temp[1]=0x00;
 			temp[2]=0x00;
