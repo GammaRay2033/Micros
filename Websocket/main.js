@@ -35,8 +35,8 @@ setTimeout(function(){
     var tValue = Math.round(th02Sensor.getCelsiusTemp()*100)/100;
     var hValue = Math.round(th02Sensor.getHumidity()*100)/100;
     var lValue = Math.round(lightSensor.readFloat()*100*100)/100;
-    lcd.setCursor(1,2);
-    lcd.write("T=" + parseInt(tValue) + " H=" + parseInt(hValue) + " L=" + parseInt(lValue));
+    //lcd.setCursor(1,2);
+    lcd.write("T=" + Math.abs(parseInt(tValue)) + " H=" + Math.abs(parseInt(hValue)) + " L=" + Math.abs(parseInt(lValue)));
   }, 100);
 }, 5000);
 
