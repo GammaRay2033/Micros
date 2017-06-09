@@ -15,7 +15,7 @@
                 lighting.html(data.lighting);
             });
             $('#led').click(function () {
-                socket.emit('ledStatus', $(this).val());
+                socket.emit('ledStatus', 1);
             });
         });
     </script>
