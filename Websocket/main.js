@@ -23,13 +23,13 @@ io.on('connection', function(socket){
         humidity: Math.round(th02Sensor.getHumidity()*100)/100,
         lighting: Math.round(lightSensor.readFloat()*100*100)/100
     });
-    socket.on('ledStatus', function(){ //on incoming websocket message...
-        toggleLed();
-    });
     }, 100); //Read the temperature every 500ms and send the reading
     socket.on('disconnect', function(){
         clearInterval(interval);
-    });    
+    });
+    socket.on('ledStatus', function(){ //on incoming websocket message...
+        toggleLed();
+    });
 });
 
 function toggleLed(){                                                                               
