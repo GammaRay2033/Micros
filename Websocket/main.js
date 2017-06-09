@@ -16,7 +16,7 @@ var ipAddr = ip.address(); //Get server IP address
 var lcd = new jsUpmI2cLcd.Jhd1313m1(6, 0x3E, 0x62); //Create LCD object
 var lcdText = new LcdTextHelper(lcd); //Create LCD text handling object
 
-lcd.setColor(0,255,255);
+lcd.setColor(255,255,0);
 lcdText.set([ //Set initial text in LCD
   "Ambient Monitor ", 
   "    -CETYS-     "
