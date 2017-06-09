@@ -34,6 +34,9 @@ Download lcd_text_helper.js from https://gist.github.com/pearlchen/31ac996f8688a
 //   Intel Galileo Gen 1: Use 0
 var lcd = new jsUpmI2cLcd.Jhd1313m1(6, 0x3E, 0x62);
 
+var ip = require('ip');
+var ipAddr = ip.address();
+
 var lcdText = new LcdTextHelper(lcd);
 
 /**
@@ -46,8 +49,6 @@ var LCD_MESSAGE_16CHAR = "1234567890ABCDEF"; // ==16 characters long
 var LCD_MESSAGE_SHORT = "1234567890"; // <16 characters long (10 chars)
 var LCD_MESSAGE_VERY_SHORT = "ABC"; // <16 characters long (3 chars)
 
-var ip = location.hostname;
-
 lcdText.set([
   "Ambient Monitor ", 
   "    -CETYS-     "
@@ -56,7 +57,7 @@ lcdText.set([
 setTimeout(function(){
   lcdText.set([
     "Check in browser",
-    "http://"+ip+":3000"
+    "http://"+ipAddr+":3000"
   ]);
 }, 5000);
 
