@@ -34,15 +34,15 @@ setInterval(function(){
 
     lcdText.set([
       "Check http://" + ipAddr + ":3000 in web browser for real time monitoring", 
-      " T=" + parseInt(tValue) + "H=" + parseInt(hValue) + "L=" + parseInt(lValue) + " "
+      " T=" + parseInt(tValue) + " H=" + parseInt(hValue) + " L=" + parseInt(lValue) + " "
     ]);
-}, 100);
+}, 10000);
 
 io.on('connection', function(socket){
     var interval = setInterval(function(){
-    //tValue = Math.round(th02Sensor.getCelsiusTemp()*100)/100;
-    //hValue = Math.round(th02Sensor.getHumidity()*100)/100;
-    //lValue = Math.round(lightSensor.readFloat()*100*100)/100;
+    tValue = Math.round(th02Sensor.getCelsiusTemp()*100)/100;
+    hValue = Math.round(th02Sensor.getHumidity()*100)/100;
+    lValue = Math.round(lightSensor.readFloat()*100*100)/100;
     socket.emit('ambient', {
         temperature: tValue,
         humidity: hValue,
