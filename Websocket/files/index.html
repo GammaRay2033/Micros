@@ -14,6 +14,9 @@
                 humidity.html(data.humidity);
                 lighting.html(data.lighting);
             });
+            $('#slider').on('input change',function(){
+                socket.emit('servoPos',$(this).val());
+            });
         });
     </script>
 </head>
