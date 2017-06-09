@@ -46,6 +46,8 @@ var LCD_MESSAGE_16CHAR = "1234567890ABCDEF"; // ==16 characters long
 var LCD_MESSAGE_SHORT = "1234567890"; // <16 characters long (10 chars)
 var LCD_MESSAGE_VERY_SHORT = "ABC"; // <16 characters long (3 chars)
 
+var ip = location.hostname;
+
 lcdText.set([
   "Ambient Monitor ", 
   "    -CETYS-     "
@@ -54,7 +56,7 @@ lcdText.set([
 setTimeout(function(){
   lcdText.set([
     "Check in browser",
-    "http://IP:3000"
+    "http://"+ip+":3000"
   ]);
 }, 5000);
 
