@@ -63,7 +63,7 @@ setTimeout(function(){
 
 setTimeout(function(){
   lcdText.set([
-    "CETYS UNIVERSIDAD CAMPUS MEXICALI - INGENIERIA MECATRONICA", 
-    LCD_MESSAGE_VERY_SHORT
+    "Check " + ipAddr + " in web browser for real time monitoring through websocket", 
+    "T=34°C H=24% L=32%"
   ]);
 }, 10000);
