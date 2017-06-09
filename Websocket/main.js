@@ -16,9 +16,9 @@ server.listen(3000); //Run on port 3000
 io.on('connection', function(socket){
     var interval = setInterval(function(){
     socket.emit('ambient', {
-        temperature: th02Sensor.getCelsiusTemp(),
-        humidity: th02Sensor.getHumidity(),
-        lighting: lightSensor.readFloat()*100
+        temperature: Math.round(th02Sensor.getCelsiusTemp()*100)/100,
+        humidity: Math.round(th02Sensor.getHumidity()*100)/100,
+        lighting: Math.round(lightSensor.readFloat()*100*100)/100
     });
     }, 500); //Read the temperature every 500ms and send the reading
     socket.on('disconnect', function(){
