@@ -25,7 +25,7 @@ io.on('connection', function(socket){
     socket.on('ledStatus', function(data){ //on incoming websocket message...
         ledPin.write(data);
     });
-    }, 500); //Read the temperature every 500ms and send the reading
+    }, 100); //Read the temperature every 500ms and send the reading
     socket.on('disconnect', function(){
         clearInterval(interval);
     });    
