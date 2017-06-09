@@ -19,30 +19,6 @@
             });
         });
     </script>
-    <script type="text/javascript">
-      window.onload = function () {
-        var chart = new CanvasJS.Chart("chartContainer", {
-          title:{
-            text: "Fruits sold in First Quarter"
-          },
-          data: [//array of dataSeries
-            { //dataSeries object
-             /*** Change type "column" to "bar", "area", "line" or "pie"***/
-             type: "line",
-             dataPoints: [
-             { label: "banana", y: 18 },
-             { label: "orange", y: 29 },
-             { label: "apple", y: 40 },
-             { label: "mango", y: 34 },
-             { label: "grape", y: 24 }
-             ]
-           }
-           ]
-         });
-        chart.render();
-      }
-  </script>
-    <script type="text/javascript" src="../dist/canvasjs.js"></script>
 </head>
 <body>
     <br>
@@ -56,5 +32,4 @@
     <h2><center>Press button for toggling the LED in the Edison</center></h2>
     <center><input type="button" value="Toggle" id="led" /></center>
 </body>
-    <div id="chartContainer" style="height: 360px; width: 100%;"></div>
 </html>
