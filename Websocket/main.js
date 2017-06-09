@@ -6,6 +6,8 @@ var io = require('socket.io')(server); //Socket.IO Library
 var bus = 6;
 var th02Sensor = new TH02(bus); // Create th02 sensor object
 var lightSensor = new mraa.Aio(0); //Create light sensor object
+var ledPin = new mraa.Gpio(13); //Set digital output in pin 13
+ledPin.dir(mraa.DIR_OUT); //Set the gpio direction to output
 
 app.get('/', function(req, res) {                  
     res.sendFile(__dirname + '/files/index.html'); //serve the static html file
@@ -19,6 +21,9 @@ io.on('connection', function(socket){
         temperature: Math.round(th02Sensor.getCelsiusTemp()*100)/100,
         humidity: Math.round(th02Sensor.getHumidity()*100)/100,
         lighting: Math.round(lightSensor.readFloat()*100*100)/100
+    });
+    socket.on('ledStatus', function(data){ //on incoming websocket message...
+        ledPin.write(data);
     });
     }, 500); //Read the temperature every 500ms and send the reading
     socket.on('disconnect', function(){
