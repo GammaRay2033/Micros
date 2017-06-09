@@ -31,15 +31,14 @@ setTimeout(function(){
   lcdText.set([
     "Check http://" + ipAddr + ":3000 in web browser for real time monitoring"
   ]);
+  setInterval(function(){
+    var tValue = Math.round(th02Sensor.getCelsiusTemp()*100)/100;
+    var hValue = Math.round(th02Sensor.getHumidity()*100)/100;
+    var lValue = Math.round(lightSensor.readFloat()*100*100)/100;
+    lcd.setCursor(1,2);
+    lcd.write(" T=" + parseInt(tValue) + " H=" + parseInt(hValue) + " L=" + parseInt(lValue) + " ");
+  }, 100);
 }, 5000);
-
-setInterval(function(){
-  var tValue = Math.round(th02Sensor.getCelsiusTemp()*100)/100;
-  var hValue = Math.round(th02Sensor.getHumidity()*100)/100;
-  var lValue = Math.round(lightSensor.readFloat()*100*100)/100;
-  lcd.setCursor(1,2);
-  lcd.write(" T=" + parseInt(tValue) + " H=" + parseInt(hValue) + " L=" + parseInt(lValue) + " ");
-}, 100);
 
 io.on('connection', function(socket){
     var interval = setInterval(function(){
