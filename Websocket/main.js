@@ -5,13 +5,12 @@ var app = express();
 var server = require('http').Server(app); //Create HTTP instance
 var io = require('socket.io')(server); //Socket.IO Library
 
-app.use(express.static(__dirname+'/files'));
+app.use(express.static(__dirname+'/files')); //Serve the html file
 
-app.get('/', function(req, res) {                  
-    res.send('Hello World!'); //Serve the html file
+app.get('/', function(req, res) {
 });
 
-server.listen(3001); //Run on port 3001
+server.listen(3000); //Run on port 3001
 
 var bus = 6;
 var th02Sensor = new TH02(bus); // Create th02 sensor object
