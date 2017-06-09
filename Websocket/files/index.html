@@ -1,0 +1,28 @@
+<html>
+<head>
+    <title>Temperature Monitor</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.2/socket.io.js"></script>
+    <script>
+        $(function(){
+            var socket = io.connect('http://192.168.2.15:3001');
+            var temperature = $('#temperature');
+            var humidity = $('#humidity');
+            var lighting = $('#lighting');
+            socket.on('ambient',function(data){
+                temperature.html(data.temperature);
+                humidity.html(data.humidity);
+                lighting.html(data.lighting);
+            });
+        });
+    </script>
+</head>
+<body>
+    <h2><center>The temperature is:</center></h2>
+    <h1><center><span id="temperature"></span>°C</center></h1>
+    <h2><center>The humidity is:</center></h2>
+    <h1><center><span id="humidity"></span>%</center></h1>
+    <h2><center>The lighting level is:</center></h2>
+    <h1><center><span id="lighting"></span>%</center></h1>
+</body>
+</html>
