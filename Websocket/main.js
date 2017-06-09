@@ -39,7 +39,7 @@ setTimeout(function(){
     var lValue = Math.round(lightSensor.readFloat()*100*100)/100;
     lcd.setCursor(1,1);
     lcd.write("T=" + Math.abs(parseInt(tValue)) + " H=" + Math.abs(parseInt(hValue)) + " L=" + Math.abs(parseInt(lValue)));
-  }, 100);
+  }, 500);
 }, 5000);
 
 io.on('connection', function(socket){
@@ -49,7 +49,7 @@ io.on('connection', function(socket){
         humidity: Math.round(th02Sensor.getHumidity()*100)/100,
         lighting: Math.round(lightSensor.readFloat()*100*100)/100
     });
-    }, 100); //Read variables every 100ms and send the reading
+    }, 500); //Read variables every 100ms and send the reading
     socket.on('disconnect', function(){ //On client disconnection
         clearInterval(interval);
     });
