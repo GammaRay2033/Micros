@@ -56,7 +56,7 @@ lcdText.set([
 
 setTimeout(function(){
   lcdText.set([
-    "Check " + ipAddr + " in web browser for real time monitoring", 
-    "T=34C H=24% L=32%"
+    "Check http://" + ipAddr + ":3000 in web browser for real time monitoring", 
+    " T=34 H=24 L=32 "
   ]);
 }, 5000);
