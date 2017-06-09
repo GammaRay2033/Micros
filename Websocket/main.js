@@ -4,7 +4,7 @@ var app = require('express')(); //Express Library
 var server = require('http').Server(app); //Create HTTP instance
 var io = require('socket.io')(server); //Socket.IO Library
 
-server.listen(3000); //Run on port 3000
+server.listen(3001); //Run on port 3001
 
 var bus = 6;
 var th02Sensor = new TH02(bus); // Create th02 sensor object
