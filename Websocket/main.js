@@ -6,6 +6,7 @@ var io = require('socket.io')(server); //Socket.IO Library
 var jsUpmI2cLcd = require('jsupm_i2clcd'); //LCD Library
 var LcdTextHelper = require('./lcd_text_helper'); //Text sliding library
 var ip = require('ip'); //IP Address Library
+var CanvasJS = require('canvasjs'); //CanvasJS Library
 
 var th02Sensor = new TH02(6); // Create th02 sensor object
 var lightSensor = new mraa.Aio(0); //Create analog input objet in pin A0
@@ -62,3 +63,60 @@ function toggleLed(){
     ledPin.write(ledState); //Write the LED state
     ledState = 1 - ledState; //Toggle LED state
 }
+
+var dps = []; // dataPoints
+            var instance = (new Date()).getTime();
+            var chart = new CanvasJS.Chart("chartContainer", {
+                title: {
+                    text: "Live SpO2 Data"
+                },
+                axisX: {
+                    title: "Time",
+                    valueFormatString: "hh:mm:ss"
+                },
+
+                axisY: {
+                    title: "%SpO2",
+                },
+                data: [{
+                    type: "spline",
+                    xValueType: "dateTime",
+                    dataPoints: dps
+                }]
+            });
+
+            var yVal = [0.02, 0.02, 0.02, 0.02, 0.05, 0.07, 0.06, 0.09, 0.06, -0.2, 0.9, 0.5, -0.1, 0.02, 0.02, 0.04, 0.1, 0.08, 0.03, 0.02, 0.02, 0.02, 0.02, 0.02];
+            var updateInterval = 1000;
+            var maxDataLength = yVal.length; // number of dataPoints after which the series shifts
+            var time = new Date();
+            var updateCount = 0;
+
+            var updateChart = function (count) {
+
+                count = count || 1;
+
+                for (var j = 0; j < count; j++) {
+                    time.setSeconds(time.getSeconds() + 1);
+
+                    dps.push({
+                        x: time.getTime(),
+                        y: yVal[updateCount % yVal.length]
+                    });
+
+                    updateCount++;
+
+                    if (dps.length > maxDataLength) {
+                        dps.shift();
+                    }
+                }
+                
+
+                chart.render();
+
+            };
+
+            // generates first set of dataPoints
+            updateChart(maxDataLength);
+
+            // update chart after specified time.
+            setInterval(function () { updateChart();}, updateInterval);
