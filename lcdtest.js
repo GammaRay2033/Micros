@@ -47,20 +47,19 @@ var LCD_MESSAGE_SHORT = "1234567890"; // <16 characters long (10 chars)
 var LCD_MESSAGE_VERY_SHORT = "ABC"; // <16 characters long (3 chars)
 
 lcdText.set([
-  "  Hello,", 
-  "        World!"
+  "Ambient Monitor ", 
+  "    -CETYS-     "
 ]);
 
 setTimeout(function(){
   lcdText.set([
-    "CETYS UNIVERSIDAD CAMPUS MEXICALI - INGENIERIA MECATRONICA", 
-    LCD_MESSAGE_VERY_SHORT
+    "Check http://192.168.1.17:3000 in web browser"
   ]);
 }, 5000);
 
 setTimeout(function(){
   lcdText.set([
-    LCD_MESSAGE_LONG, 
-    LCD_MESSAGE_VERY_LONG
+    "CETYS UNIVERSIDAD CAMPUS MEXICALI - INGENIERIA MECATRONICA", 
+    LCD_MESSAGE_VERY_SHORT
   ]);
 }, 10000);
