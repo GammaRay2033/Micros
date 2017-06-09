@@ -57,6 +57,6 @@ lcdText.set([
 setTimeout(function(){
   lcdText.set([
     "Check " + ipAddr + " in web browser for real time monitoring through websocket", 
-    "T=34°C H=24% L=32%"
+    "T=34C H=24% L=32%"
   ]);
 }, 5000);
