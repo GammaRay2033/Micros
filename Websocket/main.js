@@ -40,9 +40,9 @@ setInterval(function(){
 
 io.on('connection', function(socket){
     var interval = setInterval(function(){
-    tValue = Math.round(th02Sensor.getCelsiusTemp()*100)/100;
-    hValue = Math.round(th02Sensor.getHumidity()*100)/100;
-    lValue = Math.round(lightSensor.readFloat()*100*100)/100;
+    //tValue = Math.round(th02Sensor.getCelsiusTemp()*100)/100;
+    //hValue = Math.round(th02Sensor.getHumidity()*100)/100;
+    //lValue = Math.round(lightSensor.readFloat()*100*100)/100;
     socket.emit('ambient', {
         temperature: tValue,
         humidity: hValue,
