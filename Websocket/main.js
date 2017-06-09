@@ -6,7 +6,6 @@ var io = require('socket.io')(server); //Socket.IO Library
 var jsUpmI2cLcd = require('jsupm_i2clcd'); //LCD Library
 var LcdTextHelper = require('./lcd_text_helper'); //Text sliding library
 var ip = require('ip'); //IP Address Library
-var CanvasJS = require('canvasjs'); //CanvasJS Library
 
 var th02Sensor = new TH02(6); // Create th02 sensor object
 var lightSensor = new mraa.Aio(0); //Create analog input objet in pin A0
