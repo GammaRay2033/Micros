@@ -53,7 +53,7 @@ lcdText.set([
 
 setTimeout(function(){
   lcdText.set([
-    LCD_MESSAGE_SHORT, 
+    "CETYS UNIVERSIDAD CAMPUS MEXICALI - INGENIERIA MECATRONICA", 
     LCD_MESSAGE_VERY_SHORT
   ]);
 }, 5000);
