@@ -80,6 +80,28 @@ The resulting curve can replace the `Geom2dAPI_Interpolate` result in
 Algorithm 4. The existing evaluations (Algorithms 5, 6 and 9-11) then run on
 it unchanged.
 
+## Edges and tangency points (`edges.py`)
+
+A replacement for Algorithms 2-3. It takes the contour ordered around the
+section and does the following:
+
+1. Finds the LE and TE as the two strongest convex curvature peaks of a lightly
+   smoothed periodic spline.
+2. Fits each edge circle by geometric least squares, growing the window while
+   points stay within tolerance. Pass the drawing radius to fit only the center.
+3. Chooses all four tangency points by side-fit quality, using the baseline
+   above.
+
+```
+python edges.py contour.csv --tol 0.00015 --le-radius 0.050 --te-radius 0.020 --out section.json
+python edges.py --demo        # one synthetic section with known answer
+python edges.py --trials 20   # compare against Algorithm 2 over random spacing and rounding
+```
+
+Edges are labelled LE/TE by radius (larger = LE) unless both drawing radii
+are given. A section takes about 8 seconds, mostly the tangency grid search
+(`--grid`).
+
 ## Tests
 
 ```
