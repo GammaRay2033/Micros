@@ -487,18 +487,20 @@ def _grow_once(pts, seed, tol, grow_tol, spec, axis_angle, start_half, max_frac)
     half = start_half if start_half is not None else max(2, math.ceil(n_par / 2))
     max_len = max(2 * min_half + 1, int(max_frac * n))
 
-    # Starting window: of the windows of this size that contain the seed, the
-    # one that fits best. On a small edge, the window centered on the seed can
-    # include a side point that the shape bends to fit, pushing true edge
-    # points out.
+    # Starting window: the one centered on the seed if it fits at noise level
+    # (grow_tol); otherwise the best-fitting window of that size containing the
+    # seed. On a small edge, the centered window can include a side point that
+    # the shape bends to fit within tol, pushing true edge points out.
     while True:
         best = None
-        for offset in range(-half, half + 1):
+        for offset in sorted(range(-half, half + 1), key=abs):
             c = seed + offset
             idx = [i % n for i in range(c - half, c + half + 1)]
             shape_c, res_c = fit_shape(pts[idx], spec, axis_angle)
             if best is None or res_c < best[0]:
                 best = (res_c, c, shape_c)
+            if offset == 0 and res_c <= grow_tol:
+                break
         res, c, shape = best
         lo, hi = c - half, c + half
         if res <= tol or half <= min_half:
