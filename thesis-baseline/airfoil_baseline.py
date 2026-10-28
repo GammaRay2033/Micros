@@ -33,7 +33,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from scipy.interpolate import BSpline, make_interp_spline
-from scipy.optimize import lsq_linear
+from scipy.optimize import lsq_linear, minimize, minimize_scalar
 
 DEGREE = 3
 
@@ -185,28 +185,72 @@ def project(spl, pts, u_guess=None, n_samples=4000, newton_iters=10):
 # Constrained least-squares fit
 # ---------------------------------------------------------------------------
 
-def _pole_map(n_ctrl, p_start, p_end, t_start, t_end):
+def rot90(v):
+    return np.array([-v[1], v[0]])
+
+
+def _pole_map(n_ctrl, p_start, p_end, t_start, t_end, len_start=None, len_end=None,
+              h_start=None, h_end=None):
     """Affine map from unknowns z to flattened poles: P_flat = G @ z + h.
 
-    z = [a, b, P2x, P2y, ..., P(n-3)x, P(n-3)y]
+    Returns (G, h, pos), where pos lists the columns of z that must be positive.
+
+    G1 ends: P1 = P0 + a t0 and P(n-2) = P(n-1) - b t1, with a, b > 0 unknown.
+    G2 ends: the handle length is given (len_start / len_end), and the next
+    pole sits at the height above the tangent line that gives the required
+    end curvature (h_start / h_end, from _g2_height):
+        P2     = P0     + s0 t0 + h_start rot90(t0)
+        P(n-3) = P(n-1) + s1 d1 + h_end   rot90(d1),   d1 = -t1
     """
-    n_free = n_ctrl - 4
-    G = np.zeros((2 * n_ctrl, 2 + 2 * n_free))
+    g2_start, g2_end = len_start is not None, len_end is not None
+    i_start = 2 if g2_start else None
+    i_end = n_ctrl - 3 if g2_end else None
+    free = [i for i in range(2, n_ctrl - 2) if i not in (i_start, i_end)]
+    G = np.zeros((2 * n_ctrl, 2 + 2 * len(free)))
     h = np.zeros(2 * n_ctrl)
-    h[0:2] = p_start
-    h[2:4] = p_start
-    G[2:4, 0] = t_start
-    h[2 * (n_ctrl - 2):2 * (n_ctrl - 1)] = p_end
-    G[2 * (n_ctrl - 2):2 * (n_ctrl - 1), 1] = -t_end
-    h[2 * (n_ctrl - 1):] = p_end
-    for k in range(n_free):
-        i = 2 + k
-        G[2 * i, 2 + 2 * k] = 1.0
-        G[2 * i + 1, 2 + 2 * k + 1] = 1.0
-    return G, h
+    pos = []
+
+    def rows(i):
+        return slice(2 * i, 2 * i + 2)
+
+    h[rows(0)] = p_start
+    if g2_start:
+        h[rows(1)] = p_start + len_start * t_start
+        h[rows(i_start)] = p_start + h_start * rot90(t_start)
+        G[rows(i_start), 0] = t_start
+    else:
+        h[rows(1)] = p_start
+        G[rows(1), 0] = t_start
+        pos.append(0)
+
+    h[rows(n_ctrl - 1)] = p_end
+    if g2_end:
+        d1 = -t_end
+        h[rows(n_ctrl - 2)] = p_end + len_end * d1
+        h[rows(i_end)] = p_end + h_end * rot90(d1)
+        G[rows(i_end), 1] = d1
+    else:
+        h[rows(n_ctrl - 2)] = p_end
+        G[rows(n_ctrl - 2), 1] = -t_end
+        pos.append(1)
+
+    col = 2
+    for i in free:
+        G[2 * i, col] = 1.0
+        G[2 * i + 1, col + 1] = 1.0
+        col += 2
+    return G, h, pos
 
 
-def _solve(Q, u, knots, lam, G, h, min_len):
+def _g2_height(kappa, length, k1, k2, p=DEGREE):
+    """Height of the third pole above the end tangent that gives end curvature
+    `kappa` for an end handle of `length` (clamped B-spline; k1, k2 are the
+    first two interior knot distances from that end)."""
+    return kappa * length ** 2 * p * k2 / ((p - 1) * k1)
+
+
+def _solve(Q, u, knots, lam, G, h, pos, min_len):
+    """Bounded linear least squares. Returns (poles, cost)."""
     n_ctrl = len(knots) - DEGREE - 1
     I2 = np.eye(2)
 
@@ -230,20 +274,28 @@ def _solve(Q, u, knots, lam, G, h, min_len):
     A = np.vstack([A_fit, w * A_fair])
     b = np.concatenate([b_fit, w * b_fair])
     lb = np.full(A.shape[1], -np.inf)
-    lb[:2] = min_len
-    res = lsq_linear(A, b, bounds=(lb, np.inf), method="bvls")
-    return (G @ res.x + h).reshape(n_ctrl, 2)
+    lb[pos] = min_len
+    x = lsq_linear(A, b, bounds=(lb, np.inf), method="bvls").x
+    r = A @ x - b
+    return (G @ x + h).reshape(n_ctrl, 2), float(r @ r)
 
 
 def fit_side(Q, p_start, p_end, t_start, t_end, n_ctrl, lam=0.0,
-             param_iters=3):
+             param_iters=3, k_start=None, k_end=None):
     """Fit one side with `n_ctrl` control points and fairness weight `lam`.
 
-    Q: (K, 2) side points strictly between the two tangency points, in order
-    of travel from p_start to p_end.
+    Q: (K, 2) side points strictly between the two end points, in order of
+    travel from p_start to p_end.
+
+    k_start / k_end: optional signed end curvatures (counter-clockwise
+    positive, in the direction of travel) for G2 joints. End curvature is
+    nonlinear in the end handle's length but linear in the next pole once that
+    length is fixed. So each G2 handle length is searched directly (bounded
+    1-D search, or Nelder-Mead for two), with one linear solve per trial.
     """
-    if n_ctrl < 4:
-        raise ValueError("n_ctrl must be at least 4")
+    g2 = (k_start is not None) + (k_end is not None)
+    if n_ctrl < 4 + g2 or (g2 == 2 and n_ctrl < 6):
+        raise ValueError(f"n_ctrl={n_ctrl} too small for {g2} G2 end(s)")
     Q = np.asarray(Q, dtype=float)
     p_start, p_end = np.asarray(p_start, float), np.asarray(p_end, float)
     t_start, t_end = unit(t_start), unit(t_end)
@@ -253,15 +305,54 @@ def fit_side(Q, p_start, p_end, t_start, t_end, n_ctrl, lam=0.0,
         raise ValueError(f"n_ctrl={n_ctrl} exceeds the number of points ({len(u_all)})")
     knots = approx_knots(u_all, n_ctrl)
     u = u_all[1:-1]
+    chord = np.linalg.norm(p_end - p_start)
+    min_len = 1e-6 * chord
+    p = DEGREE
+    k1s, k2s = knots[p + 1], knots[p + 2]
+    k1e, k2e = 1.0 - knots[-(p + 2)], 1.0 - knots[-(p + 3)]
 
-    G, h = _pole_map(n_ctrl, p_start, p_end, t_start, t_end)
-    min_len = 1e-6 * np.linalg.norm(p_end - p_start)
+    def solve_g1(u):
+        G, h, pos = _pole_map(n_ctrl, p_start, p_end, t_start, t_end)
+        return _solve(Q, u, knots, lam, G, h, pos, min_len)[0]
 
-    poles = _solve(Q, u, knots, lam, G, h, min_len)
+    def solve_g2(u, lengths):
+        it = iter(lengths)
+        ls = next(it) if k_start is not None else None
+        le = next(it) if k_end is not None else None
+        hs = None if ls is None else _g2_height(k_start, ls, k1s, k2s)
+        # Reversing the curve flips the sign of its curvature.
+        he = None if le is None else _g2_height(-k_end, le, k1e, k2e)
+        G, h, pos = _pole_map(n_ctrl, p_start, p_end, t_start, t_end, ls, le, hs, he)
+        return _solve(Q, u, knots, lam, G, h, pos, min_len)
+
+    lo, hi = math.log(1e-4 * chord), math.log(chord)
+
+    def solve(u, guess):
+        if not g2:
+            return solve_g1(u), None
+        cost = lambda x: solve_g2(u, np.exp(np.clip(x, lo, hi)))[1]
+        if g2 == 1:
+            r = minimize_scalar(lambda x: cost([x]), bounds=(lo, hi), method="bounded",
+                                options={"xatol": 1e-4})
+            x = np.array([r.x])
+        else:
+            x0 = np.clip(np.log(guess), lo, hi)
+            x = minimize(cost, x0, method="Nelder-Mead",
+                         options={"xatol": 1e-4, "fatol": 1e-18, "maxiter": 400}).x
+        lengths = np.exp(np.clip(x, lo, hi))
+        return solve_g2(u, lengths)[0], lengths
+
+    poles = solve_g1(u)
+    guess = []
+    if k_start is not None:
+        guess.append(max(np.linalg.norm(poles[1] - poles[0]), 1e-3 * chord))
+    if k_end is not None:
+        guess.append(max(np.linalg.norm(poles[-1] - poles[-2]), 1e-3 * chord))
+    poles, lengths = solve(u, np.array(guess))
     # Parameter correction: re-project the points and refit with knots fixed.
     for _ in range(param_iters):
         u, _ = project(BSpline(knots, poles, DEGREE), Q, u_guess=u)
-        poles = _solve(Q, u, knots, lam, G, h, min_len)
+        poles, lengths = solve(u, lengths)
 
     spl = BSpline(knots, poles, DEGREE)
     u, dev = project(spl, Q)
@@ -270,7 +361,8 @@ def fit_side(Q, p_start, p_end, t_start, t_end, n_ctrl, lam=0.0,
 
 def fit_to_tolerance(Q, p_start, p_end, t_start, t_end, tol, m_min=4,
                      m_max=None, m_extra=4, lam_range=(1e-8, 1e4),
-                     lam_iters=30, kappa_eps=1e-9, log=None):
+                     lam_iters=30, kappa_eps=1e-9, log=None, k_start=None,
+                     k_end=None):
     """Fewest-inflection fit that keeps every point within `tol`.
 
     For each control-point count from m_min upward, fits with lam = 0; if that
@@ -283,11 +375,14 @@ def fit_to_tolerance(Q, p_start, p_end, t_start, t_end, tol, m_min=4,
     Q = np.asarray(Q, dtype=float)
     if m_max is None:
         m_max = len(Q) + 2
+    g2 = (k_start is not None) + (k_end is not None)
+    m_min = max(m_min, {0: 4, 1: 5, 2: 6}[g2])
     log = log or (lambda *_: None)
+    curv = {"k_start": k_start, "k_end": k_end}
 
     candidates, closest, first_ok = [], None, None
     for m in range(m_min, m_max + 1):
-        base = fit_side(Q, p_start, p_end, t_start, t_end, m, 0.0)
+        base = fit_side(Q, p_start, p_end, t_start, t_end, m, 0.0, **curv)
         if closest is None or base.max_dev < closest.max_dev:
             closest = base
         if base.max_dev > tol:
@@ -296,13 +391,13 @@ def fit_to_tolerance(Q, p_start, p_end, t_start, t_end, tol, m_min=4,
 
         best = base
         lo, hi = math.log10(lam_range[0]), math.log10(lam_range[1])
-        top = fit_side(Q, p_start, p_end, t_start, t_end, m, 10 ** hi)
+        top = fit_side(Q, p_start, p_end, t_start, t_end, m, 10 ** hi, **curv)
         if top.max_dev <= tol:
             best = top
         else:
             for _ in range(lam_iters):
                 mid = 0.5 * (lo + hi)
-                trial = fit_side(Q, p_start, p_end, t_start, t_end, m, 10 ** mid)
+                trial = fit_side(Q, p_start, p_end, t_start, t_end, m, 10 ** mid, **curv)
                 if trial.max_dev <= tol:
                     best, lo = trial, mid
                 else:

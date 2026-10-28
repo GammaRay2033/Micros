@@ -98,9 +98,38 @@ python edges.py --demo        # one synthetic section with known answer
 python edges.py --trials 20   # compare against Algorithm 2 over random spacing and rounding
 ```
 
-Edges are labelled LE/TE by radius (larger = LE) unless both drawing radii
-are given. A section takes about 8 seconds, mostly the tangency grid search
+By default the LE is the edge with the larger fitted circle (or the closer
+match when both drawing radii are given). That is wrong for a sharp elliptical
+LE, whose tip radius is small, so `--le-at` can pick it by coordinates instead
+(`min-x`, `max-x`, `min-y`, `max-y`) or by local width (`width`). A section
+takes about 8 seconds with circular edges, mostly the tangency grid search
 (`--grid`).
+
+### Elliptical edges
+
+```
+python edges.py contour.csv --le-shape ellipse --le-ratio 2.4 --g2 --le-at min-x
+python edges.py contour.csv --le-shape auto --le-at min-x
+python edges.py --ellipse-demo            # each configuration on one synthetic section
+python edges.py --ellipse-trials 20       # the same over random spacing and rounding
+```
+
+- `--le-shape ellipse` fits the LE as an ellipse: a geometric (orthogonal
+  distance) least-squares fit, started from Fitzgibbon's direct fit and from
+  circle-based guesses.
+- `--le-ratio` (a/b) and `--le-minor` (semi-minor axis, half the thickness at
+  the joints) take values from the drawing. `--le-axis` fixes the major-axis
+  direction in degrees. `--le-axis tip` uses the smoothed contour's normal at
+  the curvature peak, but on the synthetic section that estimate was 2.5
+  degrees off and made results worse; prefer fitting the axis unless the
+  drawing gives it.
+- `--g2` makes the sides match the ellipse's curvature at the joints, not just
+  its tangent. The baseline side fit (`fit_side(..., k_start=, k_end=)`) does
+  this exactly by searching the end handle length, with one linear solve per
+  trial.
+- `--le-shape auto` fits both shapes and keeps the ellipse only when it is
+  clearly elongated (a/b >= 1.3) and BIC prefers it.
+- The TE options are the same with `--te-`.
 
 ## Tests
 

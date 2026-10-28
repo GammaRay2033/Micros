@@ -73,3 +73,17 @@ def test_cli_with_csv_and_tangents(demo, tmp_path):
     assert data["inflections"] == 0
     assert data["max_deviation"] <= 0.00015 + 1e-12
     assert sum(data["multiplicities"]) == data["n_ctrl"] + data["degree"] + 1
+
+
+@pytest.mark.parametrize("ks,ke", [(0.147, None), (None, 0.04), (0.147, 0.04), (5.0, None)])
+def test_g2_end_curvature_is_matched(demo, ks, ke):
+    Q, ps, pe, t0, t1 = demo
+    fit = ab.fit_side(Q, ps, pe, t0, t1, n_ctrl=8, lam=0.5, k_start=ks, k_end=ke)
+    k0, k1 = fit.end_curvatures()
+    if ks is not None:
+        assert k0 == pytest.approx(ks, rel=1e-9)
+    if ke is not None:
+        assert k1 == pytest.approx(ke, rel=1e-9)
+    P = fit.poles
+    np.testing.assert_allclose(ab.unit(P[1] - P[0]), t0, atol=1e-9)
+    np.testing.assert_allclose(ab.unit(P[-1] - P[-2]), t1, atol=1e-9)

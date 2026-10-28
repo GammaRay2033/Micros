@@ -87,3 +87,81 @@ def test_side_indices_cover_contour_between_windows(result, section):
     covered = set(a.window) | set(b.window) | set(E.side_indices(n, a, b)) | set(
         E.side_indices(n, b, a))
     assert covered == set(range(n))
+
+
+# --- Ellipses -----------------------------------------------------------------
+
+TRUE_ELL = E.Ellipse(center=np.array([0.3, -0.1]), a=0.06, b=0.025, phi=math.radians(200))
+
+
+def test_ellipse_geometry_is_consistent():
+    ts = np.linspace(-1.4, 1.4, 15)
+    pts = np.array([TRUE_ELL.point(t) for t in ts])
+    np.testing.assert_allclose(TRUE_ELL.params_of(pts), ts, atol=1e-9)
+    assert TRUE_ELL.distance(pts).max() < 1e-12
+    # Tip curvature b/a^2 at the co-vertex, a/b^2 at the tip.
+    assert TRUE_ELL.curvature(math.pi / 2) == pytest.approx(0.025 / 0.06 ** 2)
+    assert TRUE_ELL.curvature(0.0) == pytest.approx(0.06 / 0.025 ** 2)
+    # Offsetting along the normal gives that distance back.
+    t = 0.7
+    n = np.array([TRUE_ELL.derivative(t)[1], -TRUE_ELL.derivative(t)[0]])
+    p = TRUE_ELL.point(t) + 0.003 * n / np.linalg.norm(n)
+    assert TRUE_ELL.distance(p)[0] == pytest.approx(0.003, rel=1e-6)
+
+
+@pytest.mark.parametrize("constraints", [{}, {"ratio": 2.4}, {"minor": 0.025},
+                                         {"phi": math.radians(200)}])
+def test_fit_ellipse_recovers_half_ellipse(constraints):
+    pts = np.array([TRUE_ELL.point(t) for t in np.linspace(-math.pi / 2, math.pi / 2, 17)])
+    e, res = E.fit_ellipse(pts, **constraints)
+    assert res < 1e-8
+    assert e.a == pytest.approx(0.06, abs=1e-7)
+    assert e.b == pytest.approx(0.025, abs=1e-7)
+    assert abs(E.wrap_angle(e.phi - TRUE_ELL.phi)) < 1e-6
+    np.testing.assert_allclose(e.center, TRUE_ELL.center, atol=1e-7)
+
+
+def test_fitzgibbon_on_full_ellipse():
+    pts = np.array([TRUE_ELL.point(t) for t in np.linspace(0, 2 * math.pi, 40, endpoint=False)])
+    e = E.fitzgibbon_ellipse(pts)
+    assert e.a == pytest.approx(0.06, rel=1e-6) and e.b == pytest.approx(0.025, rel=1e-6)
+
+
+@pytest.fixture(scope="module")
+def ell_section():
+    return E.synthetic_ellipse_section()
+
+
+def test_synthetic_ellipse_section_truth(ell_section):
+    assert ell_section.true_inflections == {"LE->TE": 2, "TE->LE": 0}
+    assert E.signed_area(ell_section.pts) > 0
+
+
+def test_detect_elliptical_le(ell_section):
+    edges, _ = E.detect_edges(ell_section.pts, 0.00015, le=E.EdgeSpec("ellipse"),
+                              label_by="min-x")
+    le = {e.label: e for e in edges}["LE"]
+    assert le.shape.kind == "ellipse"
+    assert le.shape.a == pytest.approx(0.06, abs=1e-3)
+    assert le.shape.b == pytest.approx(0.025, abs=2e-4)
+    assert abs(math.degrees(E.wrap_angle(le.shape.phi - math.radians(200)))) < 1.0
+
+
+def test_auto_picks_the_right_shape(ell_section, section):
+    edges, _ = E.detect_edges(ell_section.pts, 0.00015, le=E.EdgeSpec("auto"), label_by="min-x")
+    assert {e.label: e for e in edges}["LE"].shape.kind == "ellipse"
+    edges, _ = E.detect_edges(section.pts, 0.00015, le=E.EdgeSpec("auto"), label_by="min-x")
+    assert {e.label: e for e in edges}["LE"].shape.kind == "circle"
+
+
+def test_ellipse_g2_section(ell_section):
+    result = E.reconstruct_section(ell_section.pts, le=E.EdgeSpec("ellipse", ratio=2.4),
+                                   g2=True, label_by="min-x")
+    for s in result.sides:
+        key = f"{s.start_edge}->{s.end_edge}"
+        assert s.points_over == 0
+        assert s.fit.inflections() + s.junction_inflections == ell_section.true_inflections[key]
+        if s.start_edge == "LE":
+            assert s.g2_start and s.curvature_jump_start < 1e-6
+        if s.end_edge == "LE":
+            assert s.g2_end and s.curvature_jump_end < 1e-6
