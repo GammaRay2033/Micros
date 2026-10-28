@@ -399,12 +399,15 @@ class EdgeSpec:
     radius: circle radius. ratio / minor: ellipse a/b and semi-minor axis.
     axis: ellipse major-axis direction in radians, or "tip" to use the
     outward normal at the curvature peak.
+    joint: "covertex" puts an ellipse's tangency points at the ends of its
+    minor axis (t = +-90 degrees, the usual design) instead of searching.
     """
     kind: str = "circle"
     radius: float = None
     ratio: float = None
     minor: float = None
     axis: object = None
+    joint: str = None
 
     def n_params(self):
         if self.kind == "circle":
@@ -484,10 +487,20 @@ def _grow_once(pts, seed, tol, grow_tol, spec, axis_angle, start_half, max_frac)
     half = start_half if start_half is not None else max(2, math.ceil(n_par / 2))
     max_len = max(2 * min_half + 1, int(max_frac * n))
 
+    # Starting window: of the windows of this size that contain the seed, the
+    # one that fits best. On a small edge, the window centered on the seed can
+    # include a side point that the shape bends to fit, pushing true edge
+    # points out.
     while True:
-        lo, hi = seed - half, seed + half
-        idx = [i % n for i in range(lo, hi + 1)]
-        shape, res = fit_shape(pts[idx], spec, axis_angle)
+        best = None
+        for offset in range(-half, half + 1):
+            c = seed + offset
+            idx = [i % n for i in range(c - half, c + half + 1)]
+            shape_c, res_c = fit_shape(pts[idx], spec, axis_angle)
+            if best is None or res_c < best[0]:
+                best = (res_c, c, shape_c)
+        res, c, shape = best
+        lo, hi = c - half, c + half
         if res <= tol or half <= min_half:
             break
         half -= 1
@@ -546,7 +559,8 @@ def _fit_auto(pts, seed, tol, grow_tol, spec, axis_angle):
     absorbs a few smoothly joined side points that the circle can't, which
     BIC alone counts as evidence for the ellipse."""
     circ_spec = EdgeSpec(kind="circle", radius=spec.radius)
-    ell_spec = EdgeSpec(kind="ellipse", ratio=spec.ratio, minor=spec.minor, axis=spec.axis)
+    ell_spec = EdgeSpec(kind="ellipse", ratio=spec.ratio, minor=spec.minor, axis=spec.axis,
+                        joint=spec.joint)
     circ = grow_edge(pts, seed, tol, grow_tol=grow_tol, spec=circ_spec)
     ell = grow_edge(pts, seed, tol, grow_tol=grow_tol, spec=ell_spec, axis_angle=axis_angle)
     W = pts[ell.window]
@@ -667,7 +681,41 @@ def _default_reach(edge):
     return 2 if edge.shape.kind == "circle" else max(2, len(edge.window) // 3)
 
 
+def _covertex(end, orient):
+    """Ellipse parameter of the co-vertex where the contour leaves ("out") or
+    arrives at ("in") the edge. The tip is at t = 0 and travel crosses it with
+    t increasing when orient = +1."""
+    return orient * math.pi / 2 if end == "out" else -orient * math.pi / 2
+
+
+def _is_covertex(edge):
+    return edge.shape.kind == "ellipse" and edge.spec.joint == "covertex"
+
+
+def covertex_window(edge, pts):
+    """Re-cut an elliptical edge's window to the points between its co-vertices.
+
+    Window points past a co-vertex go to the sides; points just outside the
+    window but still between the co-vertices join the edge.
+    """
+    n = len(pts)
+    inside = lambda i: abs(edge.shape.param_of(pts[i % n])) < math.pi / 2
+    seed = edge.seed if inside(edge.seed) else edge.window[len(edge.window) // 2]
+    lo = hi = seed
+    while inside(lo - 1) and hi - lo + 1 < n // 2:
+        lo -= 1
+    while inside(hi + 1) and hi - lo + 1 < n // 2:
+        hi += 1
+    window = [i % n for i in range(lo, hi + 1)]
+    return Edge(seed=edge.seed, window=window, shape=edge.shape,
+                max_residual=float(edge.shape.distance(pts[window]).max()),
+                spec=edge.spec, label=edge.label, axis_angle=edge.axis_angle)
+
+
 def _end_range(edge, pts, end, orient, n, reach=None):
+    if _is_covertex(edge):
+        t = _covertex(end, orient)
+        return _End(lo=t, hi=t, idx=[], ang=np.array([]), end=end)
     reach = _default_reach(edge) if reach is None else reach
     reach = max(0, min(reach, len(edge.window) - 2))
     par = edge.shape.param_of
@@ -792,8 +840,8 @@ def choose_side_tangency(pts, Q_idx, e0, e1, orient, tol, grid=9,
     m, lam = ref.n_ctrl, ref.lam
 
     best = None
-    for th0 in np.linspace(r0.lo, r0.hi, grid):
-        for th1 in np.linspace(r1.lo, r1.hi, grid):
+    for th0 in np.linspace(r0.lo, r0.hi, 1 if r0.lo == r0.hi else grid):
+        for th1 in np.linspace(r1.lo, r1.hi, 1 if r1.lo == r1.hi else grid):
             Q = _side_points(pts, Q_idx, r0, r1, th0, th1, orient)
             try:
                 score = _evaluate_side(Q, e0, e1, th0, th1, orient, m, lam, tol,
@@ -846,6 +894,7 @@ def reconstruct_section(pts, tol=0.00015, le_radius=None, te_radius=None,
     le = le if le is not None else le_radius
     te = te if te is not None else te_radius
     edges, orient = detect_edges(pts, tol, le, te, grow_frac, label_by=label_by)
+    edges = [covertex_window(e, pts) if _is_covertex(e) else e for e in edges]
     a, b = edges
     n = len(pts)
     sides = [
@@ -1130,6 +1179,10 @@ ELLIPSE_CONFIGS = {
     "ellipse+ratio": dict(le=EdgeSpec("ellipse", ratio=2.4), g2=False),
     "ellipse+ratio+G2": dict(le=EdgeSpec("ellipse", ratio=2.4), g2=True),
     "ellipse+ratio+tip-axis": dict(le=EdgeSpec("ellipse", ratio=2.4, axis="tip"), g2=False),
+    "ellipse+covertex": dict(le=EdgeSpec("ellipse", joint="covertex"), g2=False),
+    "ellipse+covertex+G2": dict(le=EdgeSpec("ellipse", joint="covertex"), g2=True),
+    "ellipse+ratio+covertex+G2": dict(le=EdgeSpec("ellipse", ratio=2.4, joint="covertex"),
+                                      g2=True),
     "auto": dict(le=EdgeSpec("auto"), g2=False),
 }
 
